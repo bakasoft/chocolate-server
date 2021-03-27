@@ -66,9 +66,12 @@ export function buildCallback({ config, serverScope }) {
             }
         }
         catch (e) {
-            const status = e.statusCode || 500
-            logger.error(`${$.method} ${$.url} => ${status}`)
             logger.debug(e.stack)
+            
+            const status = e.statusCode || 500
+
+            logger.error(`${$.method} ${$.url} => ${status}`)
+
             res.status(status).json({
                 message: String(e.message),
                 satck: String(e.stack),

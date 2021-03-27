@@ -1,3 +1,5 @@
+import lodash from 'lodash'
+
 import { NotFound, ServerError } from './errors.js'
 
 export class Literal {

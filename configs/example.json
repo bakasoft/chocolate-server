@@ -1,6 +1,6 @@
 {
     "settings": {
-        "port": 3000
+        "port": 8080
     },
     "data": {
         "users": {
@@ -18,7 +18,7 @@
     },
     "routes": {
         "GET /users/:id": {
-            "context": "{users.{$.params.id}}",
+            "context": "{$.data.users.{$.params.id}}",
             "content": {
                 "id": "{id}",
                 "first_name": "{first_name}",

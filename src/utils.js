@@ -1,45 +1,31 @@
-const fs = require('fs')
+import fs from 'fs'
+import lodash from 'lodash'
 
-exports.args = (obj, description) => {
-    const usedKeys = []
+export function extractKeys(obj, fields) {
+    const result = {}
 
-    return {
-        get(key, defaultValue) {
-            if (usedKeys.indexOf(key) == -1) {
-                usedKeys.push(key)
+    for (const key of Object.keys(fields)) {
+        const value = lodash.get(obj, key)
+
+        if (value !== undefined) {
+            result[key] = value
+        }
+        else {
+            const defaultValue = fields[key]
+
+            if (defaultValue === undefined) {
+                throw new Error(`Value not found: ${key}`)
             }
 
-            const value = obj[key]
-
-            if (value === undefined || value === null) {
-                if (defaultValue === undefined) {
-                    throw new Error(`Missing key: '${key}' (${description})`)
-                }
-
-                return defaultValue
-            }
-
-            return value
-        },
-        rejectUnknownKeys() {
-            for (const key of Object.keys(obj)) {
-                if (usedKeys.indexOf(key) === -1) {
-                    throw new Error(`Unknown key: '${key}' (${description})`)
-                }
-            }
+            result[key] = defaultValue
         }
     }
+
+    return result
 }
 
-exports.loadJson = (path) => {
+export function loadJson(path) {
     const configData = fs.readFileSync(path, 'utf-8')
     
     return JSON.parse(configData)
-}
-
-exports.entries = (obj) => {
-    if (obj == null) {
-        return []
-    }
-    return Object.keys(obj).map(key => [key, obj[key]])
 }

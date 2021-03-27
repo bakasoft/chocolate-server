@@ -1,25 +1,27 @@
-const validations = require('./validations')
-const expressions = require('./expressions')
-const logger = require('./logger')
-const custom = require('./custom')
-const functions = require('./functions')
+import * as logger from './logger.js'
+import * as custom from './custom.js'
+import * as functions from './functions.js'
+
+import { extractKeys } from './utils.js'
+import { parse } from './expressions.js'
+
 
 const CONTENT_TYPE_KEY = 'Content-Type'
 const JSON_MIME_TYPE = 'application/json'
 const TEXT_PLAIN_MIME_TYPE = 'text/plain'
 
-exports.build = ({ config, serverScope }) => {
-    const args = validations.extract(config, {
+export function buildCallback({ config, serverScope }) {
+    const args = extractKeys(config, {
         status: 200,
         context: null,
         content: null,
         headers: null,
     })
 
-    const statusExpr = expressions.parse(args.status)
-    const contextExpr = expressions.parse(args.context)
-    const contentExpr = expressions.parse(args.content)
-    const headersExpr = expressions.parse(args.headers)
+    const statusExpr = parse(args.status)
+    const contextExpr = parse(args.context)
+    const contentExpr = parse(args.content)
+    const headersExpr = parse(args.headers)
 
     return (req, res) => {
         const $ = {

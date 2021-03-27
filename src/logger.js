@@ -5,7 +5,7 @@ const CYAN = '\x1b[36m'
 const DIM = '\x1b[2m'
 const END = '\x1b[0m'
 
-exports.debugMode = true
+const debugMode = true
 
 function str(value) {
     if (typeof value === 'object') {
@@ -14,24 +14,24 @@ function str(value) {
     return String(value)
 }
 
-exports.debug = (message) => {
-    if (exports.debugMode) {
+export function debug(message) {
+    if (debugMode) {
         console.log(`${DIM}${str(message)}${END}`)
     }
 }
 
-exports.info = (message) => {
+export function info(message) {
     console.log(`${CYAN}${str(message)}${END}`)
 }
 
-exports.success = (message) => {
+export function success(message) {
     console.log(`${GREEN}${str(message)}${END}`)
 }
 
-exports.warning = (message) => {
+export function warning(message) {
     console.log(`${YELLOW}${str(message)}${END}`)
 }
 
-exports.error = (message) => {
+export function error(message) {
     console.log(`${RED}${str(message)}${END}`)
 }

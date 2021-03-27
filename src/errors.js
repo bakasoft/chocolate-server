@@ -1,4 +1,4 @@
-exports.NotFound = class extends Error {
+export class NotFound extends Error {
 
     constructor(message) {
         super(message)
@@ -7,7 +7,7 @@ exports.NotFound = class extends Error {
 
 }
 
-exports.InvalidExpression = class extends Error {
+export class InvalidExpression extends Error {
 
     constructor(message) {
         super(message)

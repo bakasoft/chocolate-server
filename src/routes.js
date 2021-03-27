@@ -1,4 +1,4 @@
-const logger = require('./logger')
+import * as logger from './logger.js'
 
 function parseRouteConfig(pathConfig) {
     const spaceIndex = pathConfig.indexOf(' ')
@@ -16,7 +16,7 @@ function parseRouteConfig(pathConfig) {
     }
 }
 
-exports.build = ({ app, callback, config }) => {
+export function buildRoutes({ app, callback, config }) {
     const { methods, path } = parseRouteConfig(config)
     const route = app.route(path)
 

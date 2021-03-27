@@ -1,7 +1,7 @@
-const expressions = require('./expressions');
+import { parse } from './expressions';
 
 function testExpression({ input, output, scope }) {
-  const expr = expressions.parse(input)
+  const expr = parse(input)
   const result = expr.resolve(scope)
 
   expect(result).toEqual(output)

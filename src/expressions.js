@@ -1,6 +1,19 @@
-const lodash = require('lodash')
-const utils = require('./utils')
-const errors = require('./errors')
+import lodash from 'lodash'
+
+import * as errors from './errors.js'
+
+export function parse(value) {
+    const type = typeof value
+
+    if (type === 'object' && value !== null && value !== undefined) {
+        return parseMapper(value)
+    }
+    else if (type === 'string') {
+        return parseText(new Tape(value))
+    }
+
+    return new Literal(value)
+}
 
 class Literal {
 
@@ -90,19 +103,6 @@ class Invocation {
         return fn(...argumentValues)
     }
 
-}
-
-function parse(value) {
-    const type = typeof value
-
-    if (type === 'object' && value !== null && value !== undefined) {
-        return parseMapper(value)
-    }
-    else if (type === 'string') {
-        return parseText(new Tape(value))
-    }
-
-    return new Literal(value)
 }
 
 function parseMapper(template) {
@@ -216,4 +216,3 @@ function parseExpression(tape) {
     return result
 }
 
-exports.parse = parse

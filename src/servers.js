@@ -1,12 +1,12 @@
-const express = require('express')
-const cors = require('cors')
-const cookieParser = require('cookie-parser')
-const lodash = require('lodash')
+import express from 'express'
+import cors from 'cors'
+import cookieParser from 'cookie-parser'
+import lodash from 'lodash'
 
-const validations = require('./validations')
-const logger = require('./logger')
-const routes = require('./routes')
-const callbacks = require('./callbacks')
+import * as logger from './logger.js'
+import { extractKeys } from './utils.js'
+import { buildRoutes } from './routes.js'
+import { buildCallback } from './callbacks.js'
 
 const DEFAULT_PORT = 8080
 const DEFAULT_CORS = true
@@ -21,16 +21,10 @@ function sanitizeSettings(settings) {
     }
 }
 
-exports.build = (config) => {
+export function buildServer(config) {
     logger.info(`Building server...`)
 
-    const app = express()
-
-    app.use(express.json())
-    app.use(express.urlencoded({ extended: true }))
-    app.use(cookieParser())
-
-    const args = validations.extract(config, {
+    const args = extractKeys(config, {
         settings: null,
         data: null,
         routes: undefined,
@@ -40,6 +34,14 @@ exports.build = (config) => {
 
     sanitizeSettings(settings)
 
+    const app = express()
+
+    // Load mandatory middlewares
+    app.use(express.json())
+    app.use(express.urlencoded({ extended: true }))
+    app.use(cookieParser())
+
+    // Load optional middlewares
     if (settings.cors) {
         logger.info('CORS will be enabled.')
         app.use(cors())
@@ -51,9 +53,9 @@ exports.build = (config) => {
     }
 
     for (const [routeConfig, callbackConfig] of lodash.entries(args.routes)) {
-        const callback = callbacks.build({ config: callbackConfig, serverScope })
+        const callback = buildCallback({ config: callbackConfig, serverScope })
 
-        routes.build({ app, callback, config: routeConfig })
+        buildRoutes({ app, callback, config: routeConfig })
     }
 
     logger.info(`Server listening at ${settings.port}...`)

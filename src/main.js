@@ -1,15 +1,15 @@
-const servers = require('./servers')
-const utils = require('./utils')
-const logger = require('./logger')
+import { buildServer } from './servers.js'
+import { loadJson } from './utils.js'
+import * as logger from './logger.js'
 
 const configPath = (process.argv[2] || 'configs/example.json')
 
 logger.info(`Loading configuration '${configPath}'...`)
 
 try {
-    const config = utils.loadJson(configPath)
+    const config = loadJson(configPath)
 
-    servers.build(config)    
+    buildServer(config)    
 }
 catch (e) {
     logger.error(`FATAL ERROR! ${e}`)

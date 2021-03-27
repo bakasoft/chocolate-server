@@ -12,6 +12,6 @@ try {
     buildServer(config)    
 }
 catch (e) {
-    logger.error(`FATAL ERROR! ${e}`)
-    logger.debug(e.stack)
+    logger.debug(e)
+    logger.error(String(e))
 }

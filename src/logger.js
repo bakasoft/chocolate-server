@@ -8,15 +8,18 @@ const END = '\x1b[0m'
 const debugMode = true
 
 function str(value) {
-    if (typeof value === 'object') {
+    if (value instanceof Error) {
+        return value.stack
+    }
+    else if (typeof value === 'object') {
         return JSON.stringify(value, null, 2)
     }
     return String(value)
 }
 
-export function debug(message) {
+export function debug(value) {
     if (debugMode) {
-        console.log(`${DIM}${str(message)}${END}`)
+        console.log(`${DIM}${str(value)}${END}`)
     }
 }
 

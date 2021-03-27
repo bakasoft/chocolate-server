@@ -5,7 +5,20 @@ it doesn't count. This server is designed to be barely functional, but easy to c
 
 ## Launch Server
 
+### 1. Check your node version
+
+```shell
+node --version
+```
+
+### 2. Install dependencies
+
 ```
 npm install
+```
+
+### 3. Start the server
+
+```
 npm start -- custom_config.json
 ```

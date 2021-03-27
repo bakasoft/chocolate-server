@@ -1,5 +1,8 @@
 {
-    "scope": {
+    "settings": {
+        "port": 3000
+    },
+    "data": {
         "users": {
             "001": {
                 "id": 1,
@@ -14,19 +17,12 @@
         }
     },
     "routes": {
-        "/users/test": {
-            "GET": {
-                "content": "TEST!"
-            }
-        },
-        "/users/:id": {
-            "GET": {
-                "context": "{users.{$.params.id}}",
-                "content": {
-                    "id": "{id}",
-                    "first_name": "{first_name}",
-                    "last_name": "{last_name}"
-                }
+        "GET /users/:id": {
+            "context": "{users.{$.params.id}}",
+            "content": {
+                "id": "{id}",
+                "first_name": "{first_name}",
+                "last_name": "{last_name}"
             }
         }
     }

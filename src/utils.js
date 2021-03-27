@@ -1,17 +1,17 @@
 import fs from 'fs'
-import lodash from 'lodash'
 
-export function extractKeys(obj, fields) {
+export function extractKeys(obj, keyDefaultMap) {
+    const allowedKeys = Object.keys(keyDefaultMap)
     const result = {}
 
-    for (const key of Object.keys(fields)) {
-        const value = lodash.get(obj, key)
+    for (const key of allowedKeys) {
+        const value = obj[key]
 
         if (value !== undefined) {
             result[key] = value
         }
         else {
-            const defaultValue = fields[key]
+            const defaultValue = keyDefaultMap[key]
 
             if (defaultValue === undefined) {
                 throw new Error(`Value not found: ${key}`)
@@ -21,11 +21,22 @@ export function extractKeys(obj, fields) {
         }
     }
 
+    for (const key of Object.keys(obj)) {
+        if (allowedKeys.indexOf(key) === -1) {
+            throw new Error(`Key '${key}' is not supported. Allowed keys: ${allowedKeys.join(", ")}`)
+        }
+    }
+
     return result
 }
 
 export function loadJson(path) {
-    const configData = fs.readFileSync(path, 'utf-8')
+    try {
+        const configData = fs.readFileSync(path, 'utf-8')
     
-    return JSON.parse(configData)
+        return JSON.parse(configData)
+    }
+    catch (e) {
+        throw new Error(`[${path}] ${e.message}`)
+    }
 }

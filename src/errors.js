@@ -7,7 +7,7 @@ export class NotFound extends Error {
 
 }
 
-export class InvalidExpression extends Error {
+export class ServerError extends Error {
 
     constructor(message) {
         super(message)

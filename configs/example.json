@@ -1,0 +1,33 @@
+{
+    "scope": {
+        "users": {
+            "001": {
+                "id": 1,
+                "first_name": "Mathison",
+                "last_name": null
+            },
+            "002": {
+                "id": 2,
+                "first_name": "Claude",
+                "last_name": "Debussy"
+            }
+        }
+    },
+    "routes": {
+        "/users/test": {
+            "GET": {
+                "content": "TEST!"
+            }
+        },
+        "/users/:id": {
+            "GET": {
+                "context": "{users.{$.params.id}}",
+                "content": {
+                    "id": "{id}",
+                    "first_name": "{first_name}",
+                    "last_name": "{last_name}"
+                }
+            }
+        }
+    }
+}

@@ -8,7 +8,8 @@
   "scripts": {
     "prestart": "touch -a src/custom.js",
     "start": "nodemon src/main.js",
-    "test": "node --experimental-vm-modules node_modules/jest/bin/jest.js"
+    "test": "node --experimental-vm-modules node_modules/jest/bin/jest.js",
+    "testw": "nodemon -w src -x 'npm test'"
   },
   "author": "sergiouph",
   "license": "MIT",

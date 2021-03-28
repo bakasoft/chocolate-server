@@ -22,3 +22,7 @@ npm install
 ```
 npm start -- custom_config.json
 ```
+
+## Dependencies
+
+- [Express 4.x](http://expressjs.com/en/api.html)

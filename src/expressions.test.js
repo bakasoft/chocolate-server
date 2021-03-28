@@ -1,7 +1,7 @@
-import { parse } from './expressions';
+import { parseValue } from './expressions';
 
 function testExpression({ input, output, scope }) {
-  const expr = parse(input)
+  const expr = parseValue(input)
   const result = expr.resolve(scope)
 
   expect(result).toEqual(output)
@@ -103,12 +103,23 @@ test('nested expressions', () => {
   })
 })
 
-test('function invocation', () => {
+test('function invocation no arguments', () => {
   testExpression({
     input: '{today()}', 
     output: '2021-03-24',
     scope: {
       today: () => '2021-03-24'
+    },
+  })
+})
+
+test('function invocation with arguments', () => {
+  testExpression({
+    input: '{ test ( a, { b }, c ) }', 
+    output: 'a 0 c',
+    scope: {
+      b: 0,
+      test: (a, b, c) => [a, b, c].join(' ')
     },
   })
 })

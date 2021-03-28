@@ -40,3 +40,7 @@ export function loadJson(path) {
         throw new Error(`[${path}] ${e.message}`)
     }
 }
+
+export function q(value) {
+    return JSON.stringify(value)
+}

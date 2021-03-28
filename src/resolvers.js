@@ -24,6 +24,11 @@ export class Getter {
 
     resolve(scope) {
         const key = this.expr.resolve(scope)
+
+        if (key === '.') {
+            return scope
+        }
+
         const value = lodash.get(scope, key)
 
         if (value === undefined) {
@@ -81,7 +86,7 @@ export class Invocation {
         const fn = lodash.get(scope, functionKey)
 
         if (fn === undefined) {
-            throw new NotFound(`Resource not found: ${functionKey}`)   
+            throw new NotFound(`Function not found: ${functionKey}`)   
         }
         else if (typeof fn !== "function") {
             throw new ServerError(`Resource is not a function: ${functionKey}`)

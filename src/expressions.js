@@ -1,27 +1,37 @@
 import lodash from 'lodash'
 import { Literal, Getter, Concatenation, Mapper, Invocation } from './resolvers.js'
+import { q } from './utils'
 
-export function parse(value) {
+export function parseValue(value) {
     const type = typeof value
 
     if (type === 'object' && value !== null && value !== undefined) {
-        return parseMapper(value)
+        return parseObjectOrArray(value)
     }
     else if (type === 'string') {
-        return parseText(new Tape(value))
+        return rawParseString(new Tape(value), [])
     }
 
+    // Boolean, Number, null, undefined, etc... goes here
     return new Literal(value)
 }
 
-function parseMapper(template) {
+export function parseInstruction(text) {
+    return rawParseString(new Tape(String(text)))
+}
+
+function parseObjectOrArray(template) {
     const exprMap = {}
+
     for (const key of Object.keys(template)) {
-        exprMap[key] = parse(template[key])
+        exprMap[key] = parseValue(template[key])
     }
 
     return new Mapper(exprMap)
 }
+
+const BLANKS = [' ']
+const ESCAPABLE = ['\\', '{', '(', '[', '.', ',', ']', ')', '}']
 
 class Tape {
     
@@ -35,29 +45,58 @@ class Tape {
     }
 
     peek() {
-        const symbol = this.content[this.position]
-        return symbol ? symbol : null
+        if (this.position >= this.content.length) {
+            throw this.error(`Unexpected end.`)
+        }
+        return this.content[this.position]
     }
 
     pull() {
+        if (this.position >= this.content.length) {
+            throw this.error(`Unexpected end.`)
+        }
         const symbol = this.content[this.position]
-        if (symbol) {
+        this.position++
+        return symbol
+    }
+
+    tryPull(expected) {
+        const symbol = this.content[this.position]
+
+        if (symbol === expected) {
             this.position++
-            return symbol
+            return true
         }
         else {
-            return null
+            return false
+        }
+    }
+
+    skipBlanks() {
+        while (BLANKS.indexOf(this.content[this.position]) !== -1) {
+            this.position++
         }
     }
 
     expect(symbol) {
         if (this.pull() !== symbol) {
-            throw new Error(`Invalid expression at ${this.position}: ${this.content}`)
+            throw this.error(`Expected symbol: ${q(symbol)}`)
         }
+    }
+
+    error(message) {
+        const details = []
+
+        details.push(message)
+
+        details.push(this.content)
+        details.push(' '.repeat(this.position) + '^')
+        
+        return new Error(details.join('\n'))
     }
 }
 
-function parseText(tape, stopAt) {
+function rawParseString(tape, stopAt) {
     const exprItems = []
     const buffer = []
     const flushBuffer = () => {
@@ -69,21 +108,37 @@ function parseText(tape, stopAt) {
     }
 
     while (tape.alive()) {
-        // TODO escape char
-        if (stopAt && stopAt.indexOf(tape.peek()) !== -1) {
-            break;
+        if (tape.tryPull('\\')) {
+            if (!tape.alive()) {
+                throw tape.error(`Expected a valid escape sequence.`)
+            }
+
+            const escaped = tape.pull()
+
+            if (ESCAPABLE.indexOf(escaped) === -1) {
+                throw tape.error(`Invalid escape sequence: ${q('\\' + escaped)}`)
+            }
+
+            buffer.append(escaped)
+        }
+        else if (stopAt.indexOf(tape.peek()) !== -1) {
+            break
         }
         else if (tape.peek() === '{') {
             flushBuffer()
 
-            const exprItem = parseExpression(tape)
-            
+            tape.expect('{')
+    
+            stopAt.push('}')
+            const exprItem = rawParseInstruction(tape, stopAt)
+            stopAt.pop()
+
+            tape.expect('}')
+
             exprItems.push(exprItem)
         }
         else {
-            const symbol = tape.pull()
-            
-            buffer.push(symbol)
+            buffer.push(tape.pull())
         }
     }
 
@@ -96,32 +151,50 @@ function parseText(tape, stopAt) {
     return new Concatenation(exprItems)
 }
 
-function parseExpression(tape) {
-    tape.expect('{')
+function rawParseInstruction(tape, stopAt) {
+    tape.skipBlanks()
 
-    let result = parseText(tape, ['}', '('])
-    
-    if (tape.peek() === '(') {
+    stopAt.push(' ')
+    stopAt.push('(')
+    const base = rawParseString(tape, stopAt)
+    stopAt.pop()
+    stopAt.pop()
+
+    tape.skipBlanks()
+
+    if (tape.tryPull('(')) {
+        tape.skipBlanks()
+
         const params = []
 
-        tape.pull()
-
         while (tape.peek() !== ')') {
-            const param = parseText(tape, ['}', ')'])
+            stopAt.push(' ')
+            stopAt.push(')')
+            stopAt.push(',')
+            const param = rawParseString(tape, stopAt)
+            stopAt.pop()
+            stopAt.pop()
+            stopAt.pop()
 
             params.push(param)
+
+            tape.skipBlanks()
+            
+            if (tape.tryPull(',')) {
+                tape.skipBlanks()
+            }
+            else {
+                break
+            }
         }
 
         tape.expect(')')
+        tape.skipBlanks()
 
-        result = new Invocation(result, params)
+        return new Invocation(base, params)
     }
     else {
-        result = new Getter(result)
+        return new Getter(base)
     }
-
-    tape.expect('}')
-
-    return result
+    
 }
-

@@ -14,9 +14,44 @@
                 "first_name": "Claude",
                 "last_name": "Debussy"
             }
+        },
+        "assets": {
+            "main_page": "assets/example.html",
+            "favicon": "assets/example.ico"
         }
     },
     "routes": {
+        "GET /": {
+            "content": "{$.file({$.data.assets.main_page})}",
+            "headers": {
+                "Content-Type": "text/html"
+            }
+        },
+        "GET /favicon.ico": {
+            "content": "{$.file({$.data.assets.favicon})}",
+            "headers": {
+                "Content-Type": "image/x-icon"
+            }
+        },
+        "GET /users": {
+            "content": "{$.data.users}"
+        },
+        "POST /users": {
+            "context": {
+                "record": {
+                    "id": "{$.size({$.data.users})}",
+                    "first_name": "{$.body.firstName}",
+                    "last_name": "{$.body.lastName}"
+                }
+            },
+            "actions": [
+                "{$.set(.)}"
+            ],
+            "content": [
+                1,
+                "{record}"
+            ]
+        },
         "GET /users/:id": {
             "context": "{$.data.users.{$.params.id}}",
             "content": {

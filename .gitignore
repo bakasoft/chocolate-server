@@ -3,4 +3,8 @@
 /configs/*
 !/configs/example.json
 
+/assets/*
+!/assets/example.ico
+!/assets/example.html
+
 /src/custom.js

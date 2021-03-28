@@ -3,7 +3,7 @@ import * as custom from './custom.js'
 import * as functions from './functions.js'
 
 import { extractKeys } from './utils.js'
-import { parse } from './expressions.js'
+import { parseValue } from './expressions.js'
 
 
 const CONTENT_TYPE_KEY = 'Content-Type'
@@ -14,14 +14,16 @@ export function buildCallback({ config, serverScope }) {
     const args = extractKeys(config, {
         status: 200,
         context: null,
+        actions: null,
         content: null,
         headers: null,
     })
 
-    const statusExpr = parse(args.status)
-    const contextExpr = parse(args.context)
-    const contentExpr = parse(args.content)
-    const headersExpr = parse(args.headers)
+    const statusExpr = parseValue(args.status)
+    const contextExpr = parseValue(args.context)
+    const actionsExpr = parseValue(args.actions)
+    const contentExpr = parseValue(args.content)
+    const headersExpr = parseValue(args.headers)
 
     return (req, res) => {
         const $ = {
@@ -48,6 +50,8 @@ export function buildCallback({ config, serverScope }) {
                 Object.assign(scope, context)
             }
             
+            actionsExpr.resolve(scope)
+
             const status = Number(statusExpr.resolve(scope))
             const headers = headersExpr.resolve(scope)
             const content = contentExpr.resolve(scope)
@@ -56,7 +60,14 @@ export function buildCallback({ config, serverScope }) {
                 res.set(headers)
             }
 
-            res.status(status).json(content)
+            const contentType = res.get(CONTENT_TYPE_KEY)
+
+            if (contentType == null || contentType === JSON_MIME_TYPE) {
+                res.status(status).json(content)
+            }
+            else {
+                res.status(status).send(content)
+            }
     
             if (status >= 200 && status < 300) {
                 logger.success(`${$.method} ${$.url} => ${status}`)
@@ -66,7 +77,7 @@ export function buildCallback({ config, serverScope }) {
             }
         }
         catch (e) {
-            logger.debug(e.stack)
+            logger.debug(e)
             
             const status = e.statusCode || 500
 

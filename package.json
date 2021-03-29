@@ -4,12 +4,15 @@
   "description": "Chocolate Server",
   "main": "src/main.js",
   "type": "module",
-  "engines" : { "node" : ">=15" },
+  "engines": {
+    "node": ">=15"
+  },
   "scripts": {
     "prestart": "touch -a src/custom.js",
     "start": "nodemon src/main.js",
     "jest": "node --experimental-vm-modules node_modules/jest/bin/jest.js",
-    "test": "nodemon -w src -x 'npm run jest'"
+    "test": "nodemon -w src -x 'npm run jest'",
+    "lint": "eslint src"
   },
   "author": "sergiouph",
   "license": "MIT",
@@ -21,10 +24,20 @@
     "nodemon": "^2.0.7"
   },
   "devDependencies": {
+    "eslint": "^7.23.0",
+    "eslint-config-airbnb-base": "^14.2.1",
+    "eslint-plugin-import": "^2.22.1",
     "jest": "^26.6.3"
   },
   "jest": {
     "testEnvironment": "jest-environment-node",
     "transform": {}
+  },
+  "eslintConfig": {
+    "extends": "airbnb-base",
+    "rules": {
+      "semi": ["error", "never"],
+      "import/extensions": ["off"]
+    }
   }
 }

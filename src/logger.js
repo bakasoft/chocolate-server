@@ -8,33 +8,33 @@ const END = '\x1b[0m'
 const debugMode = true
 
 function str(value) {
-    if (value instanceof Error) {
-        return value.stack
-    }
-    else if (typeof value === 'object') {
-        return JSON.stringify(value, null, 2)
-    }
-    return String(value)
+  if (value instanceof Error) {
+    return value.stack
+  }
+  if (typeof value === 'object') {
+    return JSON.stringify(value, null, 2)
+  }
+  return String(value)
 }
 
 export function debug(value) {
-    if (debugMode) {
-        console.log(`${DIM}${str(value)}${END}`)
-    }
+  if (debugMode) {
+    console.log(`${DIM}${str(value)}${END}`)
+  }
 }
 
 export function info(message) {
-    console.log(`${CYAN}${str(message)}${END}`)
+  console.log(`${CYAN}${str(message)}${END}`)
 }
 
 export function success(message) {
-    console.log(`${GREEN}${str(message)}${END}`)
+  console.log(`${GREEN}${str(message)}${END}`)
 }
 
 export function warning(message) {
-    console.log(`${YELLOW}${str(message)}${END}`)
+  console.log(`${YELLOW}${str(message)}${END}`)
 }
 
 export function error(message) {
-    console.log(`${RED}${str(message)}${END}`)
+  console.log(`${RED}${str(message)}${END}`)
 }

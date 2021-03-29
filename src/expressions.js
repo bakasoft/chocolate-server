@@ -1,6 +1,6 @@
 import lodash from 'lodash'
-import { Literal, Getter, Concatenation, Mapper, Invocation } from './resolvers.js'
-import { q } from './utils'
+import { Literal, Getter, Concatenation, Mapper, Invocation, Actions } from './resolvers.js'
+import { q } from './utils.js'
 
 export function parseValue(value) {
     const type = typeof value
@@ -16,8 +16,18 @@ export function parseValue(value) {
     return new Literal(value)
 }
 
-export function parseInstruction(text) {
-    return rawParseString(new Tape(String(text)))
+export function parseActions(value) {
+    if (value && value.length > 0) {
+        const items = []
+
+        for (const item of value) {
+            items.push(rawParseInstruction(new Tape(item), []))
+        }
+    
+        return new Actions(items)
+    }
+
+    return new Literal(undefined)
 }
 
 function parseObjectOrArray(template) {

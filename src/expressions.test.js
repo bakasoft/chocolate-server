@@ -123,3 +123,15 @@ test('function invocation with arguments', () => {
     },
   })
 })
+
+test('function invocation with complex arguments', () => {
+  testExpression({
+    input: '{test({a}, {b})}', 
+    output: '1 0',
+    scope: {
+      a: 1,
+      b: 0,
+      test: (a, b) => [a, b].join(' ')
+    },
+  })
+})

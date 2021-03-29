@@ -15,3 +15,12 @@ export class ServerError extends Error {
     }
 
 }
+
+export class Conflict extends Error {
+
+    constructor(message) {
+        super(message)
+        this.statusCode = 409
+    }
+
+}

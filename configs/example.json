@@ -3,18 +3,19 @@
         "port": 8080
     },
     "data": {
-        "users": {
-            "001": {
+        "next_id": 3, 
+        "users": [
+            {
                 "id": 1,
                 "first_name": "Mathison",
                 "last_name": null
             },
-            "002": {
+            {
                 "id": 2,
                 "first_name": "Claude",
                 "last_name": "Debussy"
             }
-        },
+        ],
         "assets": {
             "main_page": "assets/example.html",
             "favicon": "assets/example.ico"
@@ -22,39 +23,37 @@
     },
     "routes": {
         "GET /": {
-            "content": "{$.file({$.data.assets.main_page})}",
+            "response": "{file({data.assets.main_page})}",
             "headers": {
                 "Content-Type": "text/html"
             }
         },
         "GET /favicon.ico": {
-            "content": "{$.file({$.data.assets.favicon})}",
+            "response": "{file({data.assets.favicon})}",
             "headers": {
                 "Content-Type": "image/x-icon"
             }
         },
         "GET /users": {
-            "content": "{$.data.users}"
+            "response": "{data.users}"
         },
         "POST /users": {
             "context": {
                 "record": {
-                    "id": "{$.size({$.data.users})}",
-                    "first_name": "{$.body.firstName}",
-                    "last_name": "{$.body.lastName}"
+                    "id": "{data.next_id}",
+                    "first_name": "{body.firstName}",
+                    "last_name": "{body.lastName}"
                 }
             },
             "actions": [
-                "{$.set(.)}"
+                "add({data.users}, {context.record})",
+                "inc({data}, next_id)"
             ],
-            "content": [
-                1,
-                "{record}"
-            ]
+            "response": "{context.record}"
         },
         "GET /users/:id": {
-            "context": "{$.data.users.{$.params.id}}",
-            "content": {
+            "context": "{data.users.{params.id}}",
+            "response": {
                 "id": "{id}",
                 "first_name": "{first_name}",
                 "last_name": "{last_name}"

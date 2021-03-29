@@ -1,5 +1,6 @@
 import lodash from 'lodash'
 
+import * as logger from './logger.js'
 import { NotFound, ServerError } from './errors.js'
 
 export class Literal {
@@ -25,7 +26,10 @@ export class Getter {
     resolve(scope) {
         const key = this.expr.resolve(scope)
 
-        if (key === '.') {
+        if (typeof key !== 'string') {
+            throw new ServerError(`Invalid resource key: ${this.expr.type} => ${this.key}`)
+        }
+        else if (key === '.') {
             return scope
         }
 
@@ -82,6 +86,11 @@ export class Invocation {
 
     resolve(scope) {
         const functionKey = this.exprFunction.resolve(scope)
+
+        if (typeof functionKey !== 'string') {
+            throw new ServerError(`Invalid function key: ${this.exprFunction.type} => ${functionKey}`)
+        }
+
         const argumentValues = this.exprParameters.map(exprParameter => exprParameter.resolve(scope))
         const fn = lodash.get(scope, functionKey)
 
@@ -93,6 +102,26 @@ export class Invocation {
         }
 
         return fn(...argumentValues)
+    }
+
+}
+
+export class Actions {
+
+    constructor(exprItems) {
+        this.exprItems = exprItems
+    }
+
+    resolve(scope) {
+        this.exprItems.forEach((exprItem, index) => {
+            try {
+                exprItem.resolve(scope)
+            }
+            catch (e) {
+                logger.debug(e)
+                throw new ServerError(`[Action ${index}] ${e.message}`)
+            }
+        })
     }
 
 }

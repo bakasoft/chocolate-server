@@ -10,20 +10,24 @@ const JSON_MIME_TYPE = 'application/json'
 
 export function buildCallback({ config, serverScope }) {
   const args = extractKeys(config, {
-    status: 200,
+    setup: null,
     context: null,
     actions: null,
-    response: null,
+    status: 200,
     headers: null,
+    response: null,
+    cleanup: null,
   })
 
-  const statusExpr = parseValue(args.status)
+  const setupExpr = parseActions(args.setup)
   const contextExpr = parseValue(args.context)
   const actionsExpr = parseActions(args.actions)
-  const responseExpr = parseValue(args.response)
+  const statusExpr = parseValue(args.status)
   const headersExpr = parseValue(args.headers)
+  const responseExpr = parseValue(args.response)
+  const cleanupExpr = parseActions(args.cleanup)
 
-  return (req, res) => {
+  return async (req, res) => {
     const scope = {
       ...functions,
 
@@ -44,44 +48,54 @@ export function buildCallback({ config, serverScope }) {
 
       ...custom,
     }
+
     try {
-      // Bring context data to scope
-      scope.context = contextExpr.resolve(scope)
+      await setupExpr.resolve(scope)
 
-      actionsExpr.resolve(scope)
+      scope.context = await contextExpr.resolve(scope)
 
-      const status = Number(statusExpr.resolve(scope))
-      const headers = headersExpr.resolve(scope)
-      const response = responseExpr.resolve(scope)
+      await actionsExpr.resolve(scope)
 
-      if (headers) {
-        res.set(headers)
+      scope.status = await statusExpr.resolve(scope)
+      scope.headers = await headersExpr.resolve(scope)
+      scope.response = await responseExpr.resolve(scope)
+
+      if (scope.headers) {
+        res.set(scope.headers)
       }
 
       const contentType = res.get(CONTENT_TYPE_KEY)
 
       if (contentType == null || contentType === JSON_MIME_TYPE) {
-        res.status(status).json(response)
+        res.status(scope.status).json(scope.response)
       } else {
-        res.status(status).send(response)
+        res.status(scope.status).send(scope.response)
       }
 
-      if (status >= 200 && status < 300) {
-        logger.success(`${scope.method} ${scope.url} => ${status}`)
+      if (scope.status >= 200 && scope.status < 300) {
+        logger.success(`${scope.method} ${scope.url} => ${scope.status}`)
       } else {
-        logger.warning(`${scope.method} ${scope.url} => ${status}`)
+        logger.warning(`${scope.method} ${scope.url} => ${scope.status}`)
       }
-    } catch (e) {
+    }
+    catch (e) {
       logger.debug(e)
 
-      const status = e.statusCode || 500
+      scope.status = e.statusCode || 500
 
-      logger.error(`${scope.method} ${scope.url} => ${status}`)
+      logger.error(`${scope.method} ${scope.url} => ${scope.status}`)
 
-      res.status(status).json({
+      res.status(scope.status).json({
         message: String(e.message),
-        satck: String(e.stack),
+        satck: String(e.stack).split('\n'),
       })
+    }
+    
+    try {
+      await cleanupExpr.resolve(scope)
+    }
+    catch (e) {
+      logger.error(e)
     }
   }
 }

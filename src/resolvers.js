@@ -9,19 +9,19 @@ export class Literal {
     this.type = 'Literal'
   }
 
-  resolve() {
+  async resolve() {
     return this.value
   }
 }
 
-export class Getter {
+export class GetterDynamic {
   constructor(expr) {
     this.expr = expr
-    this.type = 'Getter'
+    this.type = 'GetterDynamic'
   }
 
-  resolve(scope) {
-    const key = this.expr.resolve(scope)
+  async resolve(scope) {
+    const key = await this.expr.resolve(scope)
 
     if (typeof key !== 'string') {
       throw new ServerError(`Invalid resource key: ${this.expr.type} => ${this.key}`)
@@ -45,8 +45,16 @@ export class Concatenation {
     this.type = 'Concatenation'
   }
 
-  resolve(scope) {
-    return this.exprItems.map((exprItem) => exprItem.resolve(scope)).join('')
+  async resolve(scope) {
+    const parts = []
+
+    for (const exprItem of this.exprItems) {
+      const part = await exprItem.resolve(scope)
+
+      parts.push(part)
+    }
+
+    return parts.join('')
   }
 }
 
@@ -56,11 +64,11 @@ export class Mapper {
     this.type = 'Mapper'
   }
 
-  resolve(scope) {
+  async resolve(scope) {
     const result = {}
 
     for (const key of Object.keys(this.exprMap)) {
-      result[key] = this.exprMap[key].resolve(scope)
+      result[key] = await this.exprMap[key].resolve(scope)
     }
 
     return result
@@ -74,22 +82,24 @@ export class Invocation {
     this.type = 'Invocation'
   }
 
-  resolve(scope) {
-    const functionKey = this.exprFunction.resolve(scope)
+  async resolve(scope) {
+    const fn = await this.exprFunction.resolve(scope)
 
-    if (typeof functionKey !== 'string') {
-      throw new ServerError(`Invalid function key: ${this.exprFunction.type} => ${functionKey}`)
+    if (fn === undefined || fn === null) {
+      throw new NotFound(`Function not found`)
+    } 
+    else if (typeof fn !== 'function') {
+      throw new ServerError(`Resource is not a function`)
     }
 
-    const argumentValues = this.exprParameters.map((exprParameter) => exprParameter.resolve(scope))
-    const fn = lodash.get(scope, functionKey)
+    const argumentValues = []
 
-    if (fn === undefined) {
-      throw new NotFound(`Function not found: ${functionKey}`)
-    } else if (typeof fn !== 'function') {
-      throw new ServerError(`Resource is not a function: ${functionKey}`)
+    for (const exprParameter of this.exprParameters) {
+      const argumentValue = await exprParameter.resolve(scope)
+
+      argumentValues.push(argumentValue)
     }
-
+    
     return fn(...argumentValues)
   }
 }
@@ -97,16 +107,90 @@ export class Invocation {
 export class Actions {
   constructor(exprItems) {
     this.exprItems = exprItems
+    this.type = 'Actions'
   }
 
-  resolve(scope) {
-    this.exprItems.forEach((exprItem, index) => {
+  async resolve(scope) {
+    for (let i = 0; i < this.exprItems.length; i++) {
+      const exprItem = this.exprItems[i]
       try {
-        exprItem.resolve(scope)
+        await exprItem.resolve(scope)
       } catch (e) {
         logger.debug(e)
-        throw new ServerError(`[Action ${index}] ${e.message}`)
+        throw new ServerError(`[Action ${i}] ${e.message}`)
       }
-    })
+    }
   }
+}
+
+
+
+export const SCOPE_GETTER = (scope) => scope
+
+
+export class GetterStatic {
+
+  constructor(key) {
+    this.key = key
+    this.type = 'GetterStatic'
+  }
+
+  async resolve(scope) {
+    const value = scope[this.key]
+
+    if (value === undefined) {
+      throw new ServerError(`Cannot get ${this.key} from ${value}`)
+    }
+
+    return value
+  }
+
+}
+
+
+export class GetterNestedStatic {
+
+  constructor(expression, key) {
+    this.expression = expression
+    this.key = key
+    this.type = 'GetterNestedStatic'
+  }
+
+  async resolve(scope) {
+    const value = await this.expression.resolve(scope)
+
+    if (value === undefined || value === null) {
+      throw new ServerError(`Cannot get ${this.key} from ${value}`)
+    }
+
+    return value[this.key]
+  }
+
+}
+
+
+export class GetterNestedDynamic {
+
+  constructor(valueExpression, keyExpression) {
+    this.valueExpression = valueExpression
+    this.keyExpression = keyExpression
+    this.type = 'GetterNestedDynamic'
+  }
+
+  async resolve(scope) {
+    const key = await this.keyExpression.resolve(scope)
+
+    if (key === undefined || key === null) {
+      throw new ServerError(`Missing key`)
+    }
+
+    const value = await this.valueExpression.resolve(scope)
+
+    if (value === undefined || value === null) {
+      throw new ServerError(`Cannot get ${key} from ${value}`)
+    }
+
+    return value[key]
+  }
+
 }

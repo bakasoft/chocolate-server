@@ -59,7 +59,7 @@ test('simple get', () => {
 
 test('nested attributes', () => {
   testExpression({
-    input: '{users.001.config}',
+    input: "{users['001'].config}",
     output: { flag: true },
     scope: {
       users: {
@@ -93,13 +93,15 @@ test('advanced concatenation', () => {
 })
 
 test('nested expressions', () => {
+  const scope = {}
+  scope.id = 1
+  scope.user1 = 'Mat'
+  scope.get = (key) => scope[key]
+
   testExpression({
-    input: '{user{id}}',
+    input: "{get('user{id}')}",
     output: 'Mat',
-    scope: {
-      id: 1,
-      user1: 'Mat',
-    },
+    scope,
   })
 })
 
@@ -115,7 +117,7 @@ test('function invocation no arguments', () => {
 
 test('function invocation with arguments', () => {
   testExpression({
-    input: '{ test ( a, { b }, c ) }',
+    input: "{ test ( 'a', b, 'c' ) }",
     output: 'a 0 c',
     scope: {
       b: 0,
@@ -126,7 +128,7 @@ test('function invocation with arguments', () => {
 
 test('function invocation with complex arguments', () => {
   testExpression({
-    input: '{test({a}, {b})}',
+    input: '{test(a, b)}',
     output: '1 0',
     scope: {
       a: 1,

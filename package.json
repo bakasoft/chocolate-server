@@ -9,7 +9,7 @@
   },
   "scripts": {
     "prestart": "touch -a src/custom.js",
-    "start": "nodemon src/main.js",
+    "start": "nodemon -e '*' -w assets -w configs -w src src/main.js",
     "jest": "node --experimental-vm-modules node_modules/jest/bin/jest.js",
     "test": "nodemon -w src -x 'npm run jest'",
     "lint": "eslint src"

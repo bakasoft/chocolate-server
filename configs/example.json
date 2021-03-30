@@ -15,21 +15,23 @@
                 "first_name": "Claude",
                 "last_name": "Debussy"
             }
-        ],
-        "assets": {
-            "main_page": "assets/example.html",
-            "favicon": "assets/example.ico"
-        }
+        ]
     },
     "routes": {
         "GET /": {
-            "response": "{file({data.assets.main_page})}",
+            "response": "{file('assets/example.html')}",
             "headers": {
                 "Content-Type": "text/html"
             }
         },
+        "GET /example.js": {
+            "response": "{file('assets/example.js')}",
+            "headers": {
+                "Content-Type": "application/javascript"
+            }
+        },
         "GET /favicon.ico": {
-            "response": "{file({data.assets.favicon})}",
+            "response": "{file('assets/example.ico')}",
             "headers": {
                 "Content-Type": "image/x-icon"
             }
@@ -46,13 +48,13 @@
                 }
             },
             "actions": [
-                "add({data.users}, {context.record})",
-                "inc({data}, next_id)"
+                "add(data.users, context.record)",
+                "inc(data, 'next_id')"
             ],
             "response": "{context.record}"
         },
         "GET /users/:id": {
-            "context": "{data.users.{params.id}}",
+            "context": "{get('data.users.{params.id}')}",
             "response": {
                 "id": "{id}",
                 "first_name": "{first_name}",

@@ -76,7 +76,7 @@ export function set(obj, key, value) {
 export function add(array, item) {
   validateObject(array)
 
-  if (array.push !== 'function') {
+  if (typeof array.push !== 'function') {
     throw new ServerError(`Invalid array: ${array}`)
   }
 
@@ -120,5 +120,34 @@ export function search(array, key, expected) {
     }
   }
 
-  return null
+  return undefined
+}
+
+export function find(array, key, expected) {
+  const value = search(array, key, expected)
+
+  if (value === undefined) {
+    throw new NotFound(`Key not found: ${expected}`)
+  }
+
+  return value
+}
+
+export function get(obj, key) {
+  return lodash.get(obj, key)
+}
+
+export function sleep(seconds) {
+  const millis = seconds * 1000
+  return new Promise((resolve) => {
+    setTimeout(() => resolve(), millis)
+  })
+}
+
+export function random(min, max) {
+  return min + Math.random()*(max - min)
+}
+
+export function log(message) {
+  console.log(message)
 }

@@ -2,20 +2,21 @@
 <html lang="en">
     <head>
         <title>Chocolate Server - Example</title>
+        <script src="./example.js"></script>
     </head>
     <body>
         <h1>Chocolate Server - Example</h1>
-        <ul>
-            <li><a href="/users">Users list</a></li>
-        </ul>
-        <form method="POST" action="/users">
+        <h2>Users</h2>
+        <user-list id="userList" data-endpoint="/users"></user-list>
+        <h2>Create User</h2>
+        <div>
             <label for="firstName">First name:</label>
-            <input type="text" name="firstName" />
+            <input type="text" id="firstName" />
             <br />
             <label for="lastName">Last name:</label>
-            <input type="text" name="lastName" />
+            <input type="text" id="lastName" />
             <br />
-            <input type="submit" value="Submit" />
-        </form>
+            <button onClick="postUser(firstName.value, lastName.value); userList.refreshUsers();">Create</button>
+        </div>
     </body>
 </html>

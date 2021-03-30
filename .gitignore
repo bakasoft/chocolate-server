@@ -6,5 +6,6 @@
 /assets/*
 !/assets/example.ico
 !/assets/example.html
+!/assets/example.js
 
 /src/custom.js

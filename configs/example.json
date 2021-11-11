@@ -60,6 +60,9 @@
                 "first_name": "{first_name}",
                 "last_name": "{last_name}"
             }
+        },
+        "GET /test/:X/test": {
+            "response": "{params.X}"
         }
     }
 }
